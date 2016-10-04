@@ -2,7 +2,7 @@
 
 This branch contains the documentation utPLSQL
 
-utPLSQL Documenation:
+utPLSQL Documentation:
 https://utplsql.github.io/utPLSQL/
 
 The primary project site:
