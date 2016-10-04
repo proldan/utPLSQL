@@ -17,9 +17,9 @@ https://utplsql.github.io/docs/index.html
 #Version 3
 Version 3.X documentation automatically  produced on each build.
 
-https://utplsql.github.io/utPLSQL/version3/latest
+https://utplsql.github.io/utPLSQL/version3/latest/index.html
 
-When we have formal releases of version 3, we will host each versions documentation on this site.  under /version3/3.X.X/
+When we have formal releases of version 3, we will host each versions documentation on this site.  under version3/3.X.X/
 
 
  
