@@ -67,8 +67,9 @@ create or replace type body ut_assert_result is
       end if;
     end;
   begin
-    dbms_lob.createtemporary(l_result, true);
+    
     if self.result != ut_utils.tr_success or self.error_message is not null then
+      dbms_lob.createtemporary(l_result, true);
       if self.message is not null then
         add_text_line(l_result, '  expectation description: ', self.message);
       end if;
@@ -92,10 +93,11 @@ create or replace type body ut_assert_result is
         add_text_line(l_result, l_actual_val_msg, l_actual_val);
         add_text_line(l_result, l_expected_msg, l_expected_val);
       end if;
+      
+      if self.error_message is not null then
+        add_text_line(l_result, '  error: '||ut_utils.indent_lines( self.error_message, length('  error: ') ) );
+      end if;
 
-    end if;
-    if self.error_message is not null then
-      add_text_line(l_result, '  error: '||ut_utils.indent_lines( self.error_message, length('  error: ') ) );
     end if;
 
     return l_result;
