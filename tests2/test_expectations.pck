@@ -20,6 +20,27 @@ create or replace package test_expectations is
   
   --%test(Test equality check on same cursors)
   procedure test_equal_same_cursors;
+  
+  --%test
+  procedure test_to_be_true;
+  
+  --%test
+  procedure test_to_be_false;
+  
+  --%test
+  procedure test_to_be_null;
+  
+  --%test
+  procedure test_to_be_not_null;
+  
+  --%test
+  procedure test_to_be_like;
+  
+  --%test
+  procedure test_to_match;
+  
+  --%test
+  procedure test_be_between;
 
 end test_expectations;
 /
@@ -355,6 +376,319 @@ begin  ut.expect(l_actual).to_equal(l_expected); end;';
     open l_expected for select level lvl from dual connect by level <3;
     ut.expect(l_actual,'Check equality check on same cursors fails').to_equal(l_expected);
   end;  
+  
+  procedure test_to_be_true is
+    l_results ut_assert_results;
+    l_result integer;
+  begin
+    -- check false
+    l_results := ut_assert_processor.get_asserts_results;
+    ut.expect( 1 = 0 ).to_be_true();
+    l_result := ut_assert_processor.get_aggregate_asserts_result();
+    restore_asserts(l_results);
+    
+    ut.expect(l_result,'Validate 1=0 expectation fails').to_equal(ut_utils.tr_failure);
+    
+    --check null
+    l_results := ut_assert_processor.get_asserts_results;
+    ut.expect( 1 = null ).to_be_true();
+    l_result := ut_assert_processor.get_aggregate_asserts_result();
+    restore_asserts(l_results);
+    
+    ut.expect(l_result,'Validate 1=null expectation fails').to_equal(ut_utils.tr_failure);
+    
+    --check true
+    ut.expect( 1 = 1,'Validate 1=1 expectation succeeds').to_be_true();
+  end test_to_be_true;
+  
+  procedure test_to_be_false is
+    l_results ut_assert_results;
+    l_result integer;
+  begin
+    -- check false
+    l_results := ut_assert_processor.get_asserts_results;
+    ut.expect( 1 = 1 ).to_be_false();
+    l_result := ut_assert_processor.get_aggregate_asserts_result();
+    restore_asserts(l_results);
+    
+    ut.expect(l_result,'Validate 1=1 expectation fails').to_equal(ut_utils.tr_failure);
+    
+    --check null
+    l_results := ut_assert_processor.get_asserts_results;
+    ut.expect( 1 = null ).to_be_false();
+    l_result := ut_assert_processor.get_aggregate_asserts_result();
+    restore_asserts(l_results);
+    
+    ut.expect(l_result,'Validate 1=null expectation fails').to_equal(ut_utils.tr_failure);
+    
+    --check true
+    ut.expect( 1 = 0,'Validate 1=0 expectation succeeds').to_be_false();
+  end;  
+  
+  procedure exec_unuary_comparator(a_type varchar2, a_actual_value varchar2, a_method varchar2, a_result integer) is
+    l_statement varchar2(32767);
+    l_assert_results ut_assert_results;
+    l_result integer;
+  begin
+    l_assert_results := ut_assert_processor.get_asserts_results;
+    
+    l_statement := 'declare
+    l_actual   '||a_type||' := '||a_actual_value||';
+  begin ut.expect(l_actual).'||a_method||'(); end;';
+    execute immediate l_statement;
+    l_result :=  ut_assert_processor.get_aggregate_asserts_result();
+    restore_asserts(l_assert_results);
+    
+    ut.expect(l_result, 'exec_unuary_comparator'||chr(10)||l_statement).to_equal(a_result);
+  end exec_unuary_comparator;
+  
+  procedure test_to_be_null is
+    l_results ut_assert_results;
+    l_result integer;
+    l_cursor sys_refcursor;
+  begin
+    ut.expect( l_cursor,'Gives a success when the Cursor is null').to_be_null();
+    
+    exec_unuary_comparator('blob', 'to_blob(''abc'')', 'to_be_null', ut_utils.tr_failure);
+    exec_unuary_comparator('boolean', 'true', 'to_be_null', ut_utils.tr_failure);
+    exec_unuary_comparator('clob', '''abc''', 'to_be_null', ut_utils.tr_failure);
+    exec_unuary_comparator('date', 'sysdate', 'to_be_null', ut_utils.tr_failure);
+    exec_unuary_comparator('number', '1234', 'to_be_null', ut_utils.tr_failure);
+    exec_unuary_comparator('timestamp', 'systimestamp', 'to_be_null', ut_utils.tr_failure);
+    exec_unuary_comparator('timestamp with local time zone', 'systimestamp', 'to_be_null', ut_utils.tr_failure);
+    exec_unuary_comparator('timestamp with time zone', 'systimestamp', 'to_be_null', ut_utils.tr_failure);
+    exec_unuary_comparator('varchar2(4000)', '''abc''', 'to_be_null', ut_utils.tr_failure);
+    exec_unuary_comparator('anydata', 'anydata.convertObject(department$(''hr''))', 'to_be_null', ut_utils.tr_failure);
+        
+    exec_unuary_comparator('blob', 'NULL', 'to_be_null', ut_utils.tr_success);
+    exec_unuary_comparator('boolean', 'NULL', 'to_be_null', ut_utils.tr_success);
+    exec_unuary_comparator('clob', 'NULL', 'to_be_null', ut_utils.tr_success);
+    exec_unuary_comparator('date', 'NULL', 'to_be_null', ut_utils.tr_success);
+    exec_unuary_comparator('number', 'NULL', 'to_be_null', ut_utils.tr_success);
+    exec_unuary_comparator('timestamp', 'NULL', 'to_be_null', ut_utils.tr_success);
+    exec_unuary_comparator('timestamp with local time zone', 'NULL', 'to_be_null', ut_utils.tr_success);
+    exec_unuary_comparator('timestamp with time zone', 'NULL', 'to_be_null', ut_utils.tr_success);
+    exec_unuary_comparator('varchar2(4000)', 'NULL', 'to_be_null', ut_utils.tr_success);
+    exec_unuary_comparator('anydata', 'NULL', 'to_be_null', ut_utils.tr_success);
+    exec_unuary_comparator('anydata', 'anydata.convertObject(cast(null as department$))', 'to_be_null', ut_utils.tr_success);
+    
+  end test_to_be_null;
+  
+  procedure test_to_be_not_null is
+    l_results ut_assert_results;
+    l_result integer;
+    l_cursor sys_refcursor;
+  begin
+    open l_cursor for select * from dual;
+    ut.expect( l_cursor,'Gives a success when the Cursor is not null').to_be_not_null();
+    
+    exec_unuary_comparator('blob', 'to_blob(''abc'')', 'to_be_not_null', ut_utils.tr_success);
+    exec_unuary_comparator('boolean', 'true', 'to_be_not_null', ut_utils.tr_success);
+    exec_unuary_comparator('clob', '''abc''', 'to_be_not_null', ut_utils.tr_success);
+    exec_unuary_comparator('date', 'sysdate', 'to_be_not_null', ut_utils.tr_success);
+    exec_unuary_comparator('number', '1234', 'to_be_not_null', ut_utils.tr_success);
+    exec_unuary_comparator('timestamp', 'systimestamp', 'to_be_not_null', ut_utils.tr_success);
+    exec_unuary_comparator('timestamp with local time zone', 'systimestamp', 'to_be_not_null', ut_utils.tr_success);
+    exec_unuary_comparator('timestamp with time zone', 'systimestamp', 'to_be_not_null', ut_utils.tr_success);
+    exec_unuary_comparator('varchar2(4000)', '''abc''', 'to_be_not_null', ut_utils.tr_success);
+    exec_unuary_comparator('anydata', 'anydata.convertObject(department$(''hr''))', 'to_be_not_null', ut_utils.tr_success);    
+        
+    exec_unuary_comparator('blob', 'NULL', 'to_be_not_null', ut_utils.tr_failure);
+    exec_unuary_comparator('boolean', 'NULL', 'to_be_not_null', ut_utils.tr_failure);
+    exec_unuary_comparator('clob', 'NULL', 'to_be_not_null', ut_utils.tr_failure);
+    exec_unuary_comparator('date', 'NULL', 'to_be_not_null', ut_utils.tr_failure);
+    exec_unuary_comparator('number', 'NULL', 'to_be_not_null', ut_utils.tr_failure);
+    exec_unuary_comparator('timestamp', 'NULL', 'to_be_not_null', ut_utils.tr_failure);
+    exec_unuary_comparator('timestamp with local time zone', 'NULL', 'to_be_not_null', ut_utils.tr_failure);
+    exec_unuary_comparator('timestamp with time zone', 'NULL', 'to_be_not_null', ut_utils.tr_failure);
+    exec_unuary_comparator('varchar2(4000)', 'NULL', 'to_be_not_null', ut_utils.tr_failure);
+    exec_unuary_comparator('anydata', 'NULL', 'to_be_not_null', ut_utils.tr_failure);
+    exec_unuary_comparator('anydata', 'anydata.convertObject(cast(null as department$))', 'to_be_not_null', ut_utils.tr_failure);
+    
+  end test_to_be_not_null;
+  
+  procedure test_to_be_like is
+    procedure exec_to_be_like(a_type varchar2, a_actual varchar2, a_pattern varchar2, a_escape_char varchar2, a_result integer) is
+      l_statement varchar2(32767);
+      l_assert_results ut_assert_results;
+      l_result integer;
+    begin
+      l_assert_results := ut_assert_processor.get_asserts_results;
+      l_statement := 'declare
+  l_actual    '||a_type||' := '||a_actual||';
+  l_pattern   varchar2(32767) := :pattern;
+  l_escape_char varchar2(32767) := :escape;
+begin ut.expect( l_actual ).to_( be_like(l_pattern, l_escape_char) ); end;';
+      execute immediate l_statement using a_pattern, a_escape_char;
+      l_result := ut_assert_processor.get_aggregate_asserts_result;
+      restore_asserts(l_assert_results);
+      
+      ut.expect(l_result,'exec_to_be_like'||chr(10)||l_statement).to_equal(a_result);
+    end;
+  begin
+    exec_to_be_like('varchar2(100)', '''Stephen_King''', 'Ste__en%', '', ut_utils.tr_success);
+    exec_to_be_like('varchar2(100)', '''Stephen_King''', 'Ste__en\_K%', '\', ut_utils.tr_success);
+    exec_to_be_like('clob', 'rpad(''a'',32767,''a'')||''Stephen_King''', 'a%Ste__en%', '', ut_utils.tr_success);
+    exec_to_be_like('clob', 'rpad(''a'',32767,''a'')||''Stephen_King''', 'a%Ste__en\_K%', '\', ut_utils.tr_success);
+    exec_to_be_like('varchar2(100)', '''Stephen_King''', 'Ste_en%', '', ut_utils.tr_failure);
+    exec_to_be_like('varchar2(100)', '''Stephen_King''', 'Stephe\__%', '\', ut_utils.tr_failure);
+    exec_to_be_like('clob', 'rpad(''a'',32767,''a'')||''Stephen_King''', 'a%Ste_en%', '', ut_utils.tr_failure);
+    exec_to_be_like('clob', 'rpad(''a'',32767,''a'')||''Stephen_King''', 'a%Stephe\__%', '\', ut_utils.tr_failure);
+    exec_to_be_like('number', '12345', 'a%Stephe\__%', '\', ut_utils.tr_failure);
+  end;
+  
+  procedure test_to_match is
+    procedure exec_to_match(a_type varchar2, a_value varchar2, a_pattern varchar2, a_modifiers varchar2, a_result integer) is
+      l_statement varchar2(32767);
+      l_assert_results ut_assert_results;
+      l_result integer;
+    begin
+      l_assert_results := ut_assert_processor.get_asserts_results;
+    
+      l_statement := 'declare
+  l_actual    '||a_type||' := '||a_value||';
+  l_pattern   varchar2(32767) := :pattern;
+  l_modifiers varchar2(32767) := :mod;
+begin ut.expect( l_actual ).to_match(l_pattern, l_modifiers); end;';
+      execute immediate l_statement using a_pattern, a_modifiers;
+      l_result := ut_assert_processor.get_aggregate_asserts_result;
+      restore_asserts(l_assert_results);
+      
+      ut.expect(l_result,'exec_to_match'||chr(10)||l_statement).to_equal(a_result);
+    end exec_to_match;  
+  begin
+    exec_to_match('varchar2(100)', '''Stephen''', '^Ste(v|ph)en$', '', ut_utils.tr_success);
+    exec_to_match('varchar2(100)', '''sTEPHEN''', '^Ste(v|ph)en$', 'i', ut_utils.tr_success);
+    exec_to_match('clob', 'rpad('', '',32767)||''Stephen''', 'Ste(v|ph)en$', '', ut_utils.tr_success);
+    exec_to_match('clob', 'rpad('', '',32767)||''sTEPHEN''', 'Ste(v|ph)en$', 'i', ut_utils.tr_success);
+    exec_to_match('varchar2(100)', '''Stephen''', '^Steven$', '', ut_utils.tr_failure);
+    exec_to_match('varchar2(100)', '''sTEPHEN''', '^Steven$', 'i', ut_utils.tr_failure);
+    exec_to_match('clob', 'rpad('', '',32767)||''Stephen''', '^Stephen', '', ut_utils.tr_failure);
+    exec_to_match('clob', 'rpad('', '',32767)||''sTEPHEN''', '^Stephen', 'i', ut_utils.tr_failure);
+  end;
+  
+  procedure test_be_between is
+    procedure exec_be_between(a_type varchar2, a_actual varchar2, a_expected1 varchar2, a_expected2 varchar2, a_result integer) is
+      l_statement varchar2(32767);
+      l_assert_results ut_assert_results;
+      l_result integer;
+    begin
+      l_assert_results := ut_assert_processor.get_asserts_results;
+      
+      l_statement := 'declare
+  l_actual   '||a_type||' := '||a_actual||';
+  l_expected_1 '||a_type||' := '||a_expected1||';
+  l_expected_2 '||a_type||' := '||a_expected2||';
+begin ut.expect(l_actual).to_be_between(l_expected_1,l_expected_2); end;';
+      execute immediate l_statement;
+      l_result := ut_assert_processor.get_aggregate_asserts_result;
+      restore_asserts(l_assert_results);
+
+      ut.expect(l_result,'exec_be_between'||chr(10)||l_statement).to_equal(a_result);
+    end;  
+    
+    procedure exec_be_between_diff_types(a_type varchar2, a_type2 varchar2, a_actual varchar2, a_expected1 varchar2, a_expected2 varchar2, a_result integer) is
+      l_statement varchar2(32767);
+      l_assert_results ut_assert_results;
+      l_result integer;
+    begin
+      l_assert_results := ut_assert_processor.get_asserts_results;
+      
+      l_statement := 'declare
+  l_actual   '||a_type||' := '||a_actual||';
+  l_expected_1 '||a_type2||' := '||a_expected1||';
+  l_expected_2 '||a_type2||' := '||a_expected2||';
+begin ut.expect(l_actual).to_be_between(l_expected_1,l_expected_2); end;';
+      execute immediate l_statement;
+      l_result := ut_assert_processor.get_aggregate_asserts_result;
+      restore_asserts(l_assert_results);
+
+      ut.expect(l_result,'exec_be_between_diff_types'||chr(10)||l_statement).to_equal(a_result);
+    end;  
+    
+    procedure exec_be_between_with_msg(a_type varchar2, a_actual varchar2, a_expected1 varchar2, a_expected2 varchar2) is
+      l_statement varchar2(32767);
+      l_assert_results ut_assert_results;
+      l_result ut_assert_result;
+      l_test_message varchar2(30) := 'A test message';
+    begin
+      l_assert_results := ut_assert_processor.get_asserts_results;
+      
+      l_statement := 'declare
+  l_actual   '||a_type||' := '||a_actual||';
+  l_expected_1 '||a_type||' := '||a_expected1||';
+  l_expected_2 '||a_type||' := '||a_expected2||';
+  l_test_message varchar2(30) := :p1;
+begin ut.expect(l_actual, l_test_message).to_be_between(l_expected_1,l_expected_2); end;';
+      execute immediate l_statement using l_test_message;
+      l_result := ut_assert_processor.get_asserts_results()(1);
+      restore_asserts(l_assert_results);
+
+      ut.expect(l_result.message,'exec_be_between_with_msg'||chr(10)||l_statement).to_equal(l_test_message);
+    end;  
+    
+  begin
+    --GivesFailureForDifferentValues
+    exec_be_between('date', 'sysdate+2', 'sysdate-1', 'sysdate', ut_utils.tr_failure);
+    exec_be_between('number', '0.1', '0.3', '0.5', ut_utils.tr_failure);
+    exec_be_between('timestamp', 'systimestamp', 'systimestamp', 'systimestamp', ut_utils.tr_failure);
+    exec_be_between('timestamp with local time zone', 'systimestamp', 'systimestamp', 'systimestamp', ut_utils.tr_failure);
+    exec_be_between('timestamp with time zone', 'systimestamp', 'systimestamp', 'systimestamp', ut_utils.tr_failure);
+
+    --GivesFailureWhenActualIsNull
+    exec_be_between('date', 'NULL', 'sysdate-1', 'sysdate', ut_utils.tr_failure);
+    exec_be_between('number', 'NULL', '0', '1', ut_utils.tr_failure);
+    exec_be_between('timestamp', 'NULL', 'systimestamp-1', 'systimestamp', ut_utils.tr_failure);
+    exec_be_between('timestamp with local time zone', 'NULL', 'systimestamp-1', 'systimestamp', ut_utils.tr_failure);
+    exec_be_between('timestamp with time zone', 'NULL', 'systimestamp-1', 'systimestamp', ut_utils.tr_failure);
+
+    --GivesFailureWhenBothActualAndExpectedRangeIsNull
+    exec_be_between('date', 'NULL', 'NULL', 'NULL', ut_utils.tr_failure);
+    exec_be_between('number', 'NULL', 'NULL', 'NULL', ut_utils.tr_failure);
+    exec_be_between('timestamp', 'NULL', 'NULL', 'NULL', ut_utils.tr_failure);
+    exec_be_between('timestamp with local time zone', 'NULL', 'NULL', 'NULL', ut_utils.tr_failure);
+    exec_be_between('timestamp with time zone', 'NULL', 'NULL', 'NULL', ut_utils.tr_failure);
+
+    --GivesFailureWhenExpectedRangeIsNull
+    exec_be_between('date', 'sysdate', 'NULL', 'sysdate', ut_utils.tr_failure);
+    exec_be_between('number', '1234', 'NULL', '1234', ut_utils.tr_failure);
+    exec_be_between('timestamp', 'systimestamp', 'NULL', 'systimestamp', ut_utils.tr_failure);
+    exec_be_between('timestamp with local time zone', 'systimestamp', 'NULL', 'systimestamp', ut_utils.tr_failure);
+    exec_be_between('timestamp with time zone', 'systimestamp', 'NULL', 'systimestamp', ut_utils.tr_failure);
+
+    exec_be_between('date', 'sysdate', 'sysdate', 'NULL', ut_utils.tr_failure);
+    exec_be_between('number', '1234', '1234', 'NULL', ut_utils.tr_failure);
+    exec_be_between('timestamp', 'systimestamp', 'systimestamp', 'NULL', ut_utils.tr_failure);
+    exec_be_between('timestamp with local time zone', 'systimestamp', 'systimestamp', 'NULL', ut_utils.tr_failure);
+    exec_be_between('timestamp with time zone', 'systimestamp', 'systimestamp', 'NULL', ut_utils.tr_failure);
+
+    exec_be_between('date', 'sysdate', 'NULL', 'NULL', ut_utils.tr_failure);
+    exec_be_between('number', '1234', 'NULL', 'NULL', ut_utils.tr_failure);
+    exec_be_between('timestamp', 'systimestamp', 'NULL', 'NULL', ut_utils.tr_failure);
+    exec_be_between('timestamp with local time zone', 'systimestamp', 'NULL', 'NULL', ut_utils.tr_failure);
+    exec_be_between('timestamp with time zone', 'systimestamp', 'NULL', 'NULL', ut_utils.tr_failure);
+
+    --GivesTrueForCorrectValues
+    exec_be_between('date', 'sysdate', 'sysdate-1', 'sysdate+1', ut_utils.tr_success);
+    exec_be_between('number', '0.4', '0.3', '0.5', ut_utils.tr_success);
+    exec_be_between('varchar2(50)', '''b''', '''a''', '''c''', ut_utils.tr_success);
+    exec_be_between('timestamp', 'systimestamp', 'systimestamp-1', 'systimestamp', ut_utils.tr_success);
+    exec_be_between('timestamp with local time zone', 'systimestamp', 'systimestamp-1', 'systimestamp', ut_utils.tr_success);
+    exec_be_between('timestamp with time zone', 'systimestamp', 'systimestamp-1', 'systimestamp', ut_utils.tr_success);
+
+    --GivesSuccessWhenDifferentTypes
+    exec_be_between_diff_types('varchar2(4000)', 'number', '''1''', '0', '2', ut_utils.tr_success);
+    exec_be_between_diff_types('number', 'varchar2(4000)', '1', '''0''', '''2''', ut_utils.tr_success);
+
+    --GivesTheProvidedTextAsMessage
+    exec_be_between_with_msg('date', 'sysdate', 'sysdate-1', 'sysdate+1');
+    exec_be_between_with_msg('number', '0.4', '0.3', '0.5');
+    exec_be_between_with_msg('timestamp', 'systimestamp', 'systimestamp-1', 'systimestamp');
+    exec_be_between_with_msg('timestamp with local time zone', 'systimestamp', 'systimestamp-1', 'systimestamp');
+    exec_be_between_with_msg('timestamp with time zone', 'systimestamp', 'systimestamp-1', 'systimestamp');
+
+
+  end;
 
   procedure create_department_object_type is
     pragma autonomous_transaction;
