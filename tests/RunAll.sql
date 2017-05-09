@@ -23,12 +23,15 @@ create table ut$test_table (val varchar2(1));
 @@helpers/test_package_1.pck
 @@helpers/test_package_2.pck
 @@helpers/utplsql_test_reporter.typ
+@@helpers/test_reporters.pks
+@@helpers/test_reporters.pkb
 
 --Start coverage in develop mode (coverage for utPLSQL framework)
 --Regular coverage excludes the framework
 exec ut_coverage.coverage_start_develop();
 @@lib/mystats/mystats start
 
+@@lib/RunTest.sql ut_annotations/ut_annotations.parse_package_annotations.IgnoreWrappedPackageAndDoesNotRaiseException.sql
 @@lib/RunTest.sql ut_annotations/ut_annotations.parse_package_annotations.ParseAnnotationMixedWithWrongBeforeProcedure.sql
 @@lib/RunTest.sql ut_annotations/ut_annotations.parse_package_annotations.ParseAnnotationNotBeforeProcedure.sql
 @@lib/RunTest.sql ut_annotations/ut_annotations.parse_package_annotations.ParseComplexPackage.sql
@@ -39,36 +42,44 @@ exec ut_coverage.coverage_start_develop();
 @@lib/RunTest.sql ut_annotations/ut_annotations.parse_package_annotations.ParsePackageLevelAnnotationWithKeyValue.sql
 @@lib/RunTest.sql ut_annotations/ut_annotations.parse_package_annotations.ParsePackageLevelAnnotationWithMultilineComment.sql
 
-@@ut_expectations/ut.expect.to_be_between.GivesFailureForDifferentValues.sql
-@@ut_expectations/ut.expect.to_be_between.GivesFailureWhenActualIsNull.sql
-@@ut_expectations/ut.expect.to_be_between.GivesFailureWhenBothActualAndExpectedRangeIsNull.sql
-@@ut_expectations/ut.expect.to_be_between.GivesFailureWhenExpectedRangeIsNull.sql
-@@ut_expectations/ut.expect.to_be_between.GivesSuccessWhenDifferentTypes.sql
-@@ut_expectations/ut.expect.to_be_between.GivesTrueForCorrectValues.sql
-@@ut_expectations/ut.expect.to_be_between.with_text.GivesTheProvidedTextAsMessage.sql
+@@lib/RunTest.sql ut_expectations/ut.expect.to_be_false.GivesFailureWhenExpessionIsNotBoolean.sql
 @@lib/RunTest.sql ut_expectations/ut.expect.to_be_false.GivesFailureWhenExpessionIsNull.sql
 @@lib/RunTest.sql ut_expectations/ut.expect.to_be_false.GivesFailureWhenExpessionIsTrue.sql
 @@lib/RunTest.sql ut_expectations/ut.expect.to_be_false.GivesSuccessWhenExpessionIsFalse.sql
-@@ut_expectations/ut.expect.to_be_like.sql
+@@lib/RunTest.sql ut_expectations/ut.expect.to_be_like.FailsForUnsupportedDatatype.sql
 @@ut_expectations/ut.expect.to_be_not_null.GivesFailureWhenActualIsNull.sql
 @@ut_expectations/ut.expect.to_be_not_null.GivesSuccessWhenActualIsNotNull.sql
 @@lib/RunTest.sql ut_expectations/ut.expect.to_be_null.anydata.GivesSuccessWhenAnydataIsNull.sql
+@@lib/RunTest.sql ut_expectations/ut.expect.to_be_null.anydata.GivesSuccessWhenCollectionPassedIsNull.sql
 @@lib/RunTest.sql ut_expectations/ut.expect.to_be_null.anydata.GivesSuccessWhenObjectPassedIsNull.sql
 @@ut_expectations/ut.expect.to_be_null.GivesFailureWhenActualIsNotNull.sql
 @@ut_expectations/ut.expect.to_be_null.GivesSuccessWhenActualIsNull.sql
 @@lib/RunTest.sql ut_expectations/ut.expect.to_be_null.refcursor.GivesSuccessWhenCursorIsNull.sql
 @@lib/RunTest.sql ut_expectations/ut.expect.to_be_true.GivesFailureWhenExpessionIsFalse.sql
+@@lib/RunTest.sql ut_expectations/ut.expect.to_be_true.GivesFailureWhenExpessionIsNotBoolean.sql
 @@lib/RunTest.sql ut_expectations/ut.expect.to_be_true.GivesFailureWhenExpessionIsNull.sql
 @@lib/RunTest.sql ut_expectations/ut.expect.to_be_true.GivesSuccessWhenExpessionIsTrue.sql
 @@lib/RunTest.sql ut_expectations/ut.expect.to_equal.anydata.GivesFailureWhenBothObjectsAreNullButDifferentType.sql
 @@lib/RunTest.sql ut_expectations/ut.expect.to_equal.anydata.GivesFailureWhenComparingDifferentData.sql
+@@lib/RunTest.sql ut_expectations/ut.expect.to_equal.anydata.GivesFailureWhenComparingDifferentObjects.sql
+@@lib/RunTest.sql ut_expectations/ut.expect.to_equal.anydata.GivesFailureWhenComparingObejctToCollection.sql
 @@lib/RunTest.sql ut_expectations/ut.expect.to_equal.anydata.GivesFailureWhenOneOfObjectsIsNull.sql
 @@lib/RunTest.sql ut_expectations/ut.expect.to_equal.anydata.GivesSuccessWhenBothAnydataAreNull.sql
 @@lib/RunTest.sql ut_expectations/ut.expect.to_equal.anydata.GivesSuccessWhenBothObjectsAreNull.sql
+@@lib/RunTest.sql ut_expectations/ut.expect.to_equal.anydata.GivesSuccessWhenComparingTheSameCollections.sql
 @@lib/RunTest.sql ut_expectations/ut.expect.to_equal.anydata.GivesSuccessWhenComparingTheSameData.sql
-@@lib/RunTest.sql ut_expectations/ut.expect.to_equal.anydata.PutsObjectStrucureIntoAssert.sql
+@@lib/RunTest.sql ut_expectations/ut.expect.to_equal.anydata.PutsObjectStrucureIntoResult.sql
+@@lib/RunTest.sql ut_expectations/ut.expect.to_equal.cursor.ComparesDateAndTimeWhenSetNlsIsUsed.sql
+@@lib/RunTest.sql ut_expectations/ut.expect.to_equal.cursor.ExcludeColumnNameListIsCaseSensitive.sql
+@@lib/RunTest.sql ut_expectations/ut.expect.to_equal.cursor.ExcludeColumnNamesAreCaseSensitive.sql
 @@lib/RunTest.sql ut_expectations/ut.expect.to_equal.cursor.GivesFailureForDifferentValues.sql
 @@lib/RunTest.sql ut_expectations/ut.expect.to_equal.cursor.GivesSuccessForEqualValues.sql
+@@lib/RunTest.sql ut_expectations/ut.expect.to_equal.cursor.GivesSuccessForEqualValuesWithExcludedColumnList.sql
+@@lib/RunTest.sql ut_expectations/ut.expect.to_equal.cursor.GivesSuccessForEqualValuesWithExcludedColumns.sql
+@@lib/RunTest.sql ut_expectations/ut.expect.to_equal.cursor.ReportsTheExceptionWhenAnExceptionInCursorIsCaught.sql
+@@lib/RunTest.sql ut_expectations/ut.expect.to_equal.cursor.ReturnsCursorDataForFailure.sql
+@@lib/RunTest.sql ut_expectations/ut.expect.to_equal.cursor.SupportsSQLandPLSQLdatatypes.sql
+@@lib/RunTest.sql ut_expectations/ut.expect.to_equal.cursor.UsesDefaultNLSSettingsForDatesFormatting.sql
 @@lib/RunTest.sql ut_expectations/ut.expect.to_equal.cursor.ReturnsCursorDataForFailure.sql
 @@ut_expectations/ut.expect.to_equal.GivesFailureForDifferentDataTypes.sql
 @@ut_expectations/ut.expect.to_equal.GivesFailureForDifferentValues.sql
@@ -82,15 +93,21 @@ exec ut_coverage.coverage_start_develop();
 @@ut_expectations/ut.expect.to_equal.PutsNullIntoStringValueWhenActualIsNull.sql
 @@ut_expectations/ut.expect.to_equal.PutsNullIntoStringValueWhenExpectedIsNull.sql
 @@ut_expectations/ut.expect.to_equal.with_text.GivesTheProvidedTextAsMessage.sql
-@@ut_expectations/ut.expect.to_match.sql
-@@lib/RunTest.sql ut_expectations/ut_assert_processor.nulls_are_equal.raisesExceptionWhenTryingToSetNullValue.sql
+@@ut_expectations/ut.expect.not_to_equal.GivesFailureForDifferentDataTypes.sql
+@@ut_expectations/ut.expect.not_to_equal.GivesFailureForEqualValues.sql
+@@ut_expectations/ut.expect.not_to_equal.GivesSuccessForDifferentValues.sql
+@@lib/RunTest.sql ut_expectations/ut.expect.to_match.FailsForUnsupportedDatatype.sql
+@@lib/RunTest.sql ut_expectations/ut_data_value_object.compare.Gives0WhenComparingIdenticalObjects.sql
+@@lib/RunTest.sql ut_expectations/ut_expectation_processor.nulls_are_equal.raisesExceptionWhenTryingToSetNullValue.sql
 
 @@ut_matchers/be_between.sql
+@@ut_matchers/be_empty.sql
+@@ut_matchers/be_like.sql
 @@ut_matchers/greater_or_equal.sql
 @@ut_matchers/greater_than.sql
 @@ut_matchers/less_or_equal.sql
 @@ut_matchers/less_than.sql
-@@ut_matchers/be_empty.sql
+@@ut_matchers/match.sql
 
 @@lib/RunTest.sql ut_matchers/timestamp_between.sql
 @@lib/RunTest.sql ut_matchers/timestamp_ltz_between.sql
@@ -105,6 +122,13 @@ exec ut_coverage.coverage_start_develop();
 @@lib/RunTest.sql ut_output_buffer/send_line.DoesNotSendLineIfNullReporterIdGiven.sql
 @@lib/RunTest.sql ut_output_buffer/send_line.DoesNotSendLineIfNullTextGiven.sql
 @@lib/RunTest.sql ut_output_buffer/send_line.SendsALineIntoBufferTable.sql
+
+@@lib/RunTest.sql ut_reporters/ut_coverage_sonar_reporter.AcceptsFileMapping.sql
+@@lib/RunTest.sql ut_reporters/ut_coverage_sonar_reporter.BuildsSonarCoverageReport.sql
+@@lib/RunTest.sql ut_reporters/ut_sonar_test_reporter.AcceptsFileMapping.sql
+@@lib/RunTest.sql ut_reporters/ut_sonar_test_reporter.ProducesExpectedOutputs.sql
+@@lib/RunTest.sql ut_reporters/ut_teamcity_reporter.ProducesExpectedOutputs.sql
+@@lib/RunTest.sql ut_reporters/ut_xunit_reporter.ProducesExpectedOutputs.sql
 
 @@lib/RunTest.sql ut_run/ut.run.FailsToExecuteAnInvalidPackageBody.sql
 @@lib/RunTest.sql ut_run/ut_run.function.WithGivenReporter.ExectutesAllInCurrentSchemaUsingReporter.sql
@@ -168,7 +192,6 @@ exec ut_coverage.coverage_start_develop();
 @@lib/RunTest.sql ut_test/ut_test.BeforeEachProcedureNameInvalid.sql
 @@lib/RunTest.sql ut_test/ut_test.BeforeEachProcedureNameNull.sql
 @@lib/RunTest.sql ut_test/ut_test.TestOutputGathering.sql
-@@lib/RunTest.sql ut_test/ut_test.TestOutputGatheringForTeamcity.sql
 @@lib/RunTest.sql ut_test/ut_test.TestOutputGatheringWhenEmpty.sql
 @@lib/RunTest.sql ut_test/ut_test.ReportWarningOnRollbackFailed.sql
 
@@ -187,6 +210,7 @@ exec ut_coverage.coverage_start_develop();
 @@lib/RunTest.sql ut_test_suite/ut_test_suite.Rollback_type.ManualOnFailure.sql
 
 @@ut_utils/ut_utils.clob_to_table.sql
+@@ut_utils/ut_utils.table_to_clob.sql
 @@lib/RunTest.sql ut_utils/ut_utils.test_result_to_char.RunsWithInvalidValues.sql
 @@lib/RunTest.sql ut_utils/ut_utils.test_result_to_char.RunsWithNullValue.sql
 @@lib/RunTest.sql ut_utils/ut_utils.test_result_to_char.Success.sql
@@ -225,6 +249,7 @@ drop package test_package_1;
 drop package test_package_2;
 drop package test_package_3;
 drop type utplsql_test_reporter;
+drop package test_reporters;
 
 set timing on
 prompt Generating coverage data to reporter outputs
@@ -272,8 +297,8 @@ begin
     'source/core/types',
     'source/core/ut_annotations.pkb',
     'source/core/ut_annotations.pks',
-    'source/core/ut_assert_processor.pkb',
-    'source/core/ut_assert_processor.pks',
+    'source/core/ut_expectation_processor.pkb',
+    'source/core/ut_expectation_processor.pks',
     'source/core/ut_message_id_seq.sql',
     'source/core/ut_metadata.pkb',
     'source/core/ut_metadata.pks',
@@ -294,9 +319,9 @@ begin
     'source/core/coverage/ut_coverage_sources_tmp.sql',
     'source/core/coverage/ut_coverage_reporter_base.tpb',
     'source/core/coverage/ut_coverage_reporter_base.tps',
-    'source/core/types/ut_assert_result.tpb',
-    'source/core/types/ut_assert_result.tps',
-    'source/core/types/ut_assert_results.tps',
+    'source/core/types/ut_expectation_result.tpb',
+    'source/core/types/ut_expectation_result.tps',
+    'source/core/types/ut_expectation_results.tps',
     'source/core/types/ut_console_reporter_base.tpb',
     'source/core/types/ut_console_reporter_base.tps',
     'source/core/types/ut_event_listener.tpb',
@@ -366,12 +391,16 @@ begin
     'source/expectations/data_values/ut_data_value_boolean.tps',
     'source/expectations/data_values/ut_data_value_clob.tpb',
     'source/expectations/data_values/ut_data_value_clob.tps',
+    'source/expectations/data_values/ut_data_value_collection.tpb',
+    'source/expectations/data_values/ut_data_value_collection.tps',
     'source/expectations/data_values/ut_data_value_date.tpb',
     'source/expectations/data_values/ut_data_value_date.tps',
     'source/expectations/data_values/ut_data_value_dsinterval.tpb',
     'source/expectations/data_values/ut_data_value_dsinterval.tps',
     'source/expectations/data_values/ut_data_value_number.tpb',
     'source/expectations/data_values/ut_data_value_number.tps',
+    'source/expectations/data_values/ut_data_value_object.tpb',
+    'source/expectations/data_values/ut_data_value_object.tps',
     'source/expectations/data_values/ut_data_value_refcursor.tpb',
     'source/expectations/data_values/ut_data_value_refcursor.tps',
     'source/expectations/data_values/ut_data_value_timestamp.tpb',
@@ -424,6 +453,8 @@ begin
     'source/reporters/ut_coverage_sonar_reporter.tps',
     'source/reporters/ut_documentation_reporter.tpb',
     'source/reporters/ut_documentation_reporter.tps',
+    'source/reporters/ut_sonar_test_reporter.tpb',
+    'source/reporters/ut_sonar_test_reporter.tps',
     'source/reporters/ut_teamcity_reporter.tpb',
     'source/reporters/ut_teamcity_reporter.tps',
     'source/reporters/ut_teamcity_reporter_helper.pkb',
@@ -447,9 +478,9 @@ begin
   ut_coverage.coverage_stop_develop();
 
   --run for the second time to get the coverage report
---   l_reporter := ut_coverage_html_reporter( a_project_name => 'utPLSQL v3', a_file_paths => l_file_list );
---   :html_reporter_id := l_reporter.reporter_id;
---   l_reporter.after_calling_run(ut_run(ut_suite_items()));
+  l_reporter := ut_coverage_html_reporter( a_project_name => 'utPLSQL v3', a_file_paths => l_file_list );
+  :html_reporter_id := l_reporter.reporter_id;
+  l_reporter.after_calling_run(ut_run(ut_suite_items()));
 
   l_reporter := ut_coverage_sonar_reporter( a_file_paths => l_file_list );
   :sonar_reporter_id := l_reporter.reporter_id;
@@ -477,12 +508,12 @@ spool coverage.json
 select * from table(ut_output_buffer.get_lines(:coveralls_reporter_id));
 spool off
 
--- set termout on
--- prompt Spooling outcomes to coverage.html
--- set termout off
--- spool coverage.html
--- exec ut_output_buffer.lines_to_dbms_output(:html_reporter_id);
--- spool off
+set termout on
+prompt Spooling outcomes to coverage.html
+set termout off
+spool coverage.html
+exec ut_output_buffer.lines_to_dbms_output(:html_reporter_id);
+spool off
 
 @@lib/mystats/mystats stop t=1000
 
