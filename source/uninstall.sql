@@ -1,3 +1,19 @@
+/*
+  utPLSQL - Version X.X.X.X
+  Copyright 2016 - 2017 utPLSQL Project
+
+  Licensed under the Apache License, Version 2.0 (the "License"):
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
 prompt Uninstalling UTPLSQL v3 framework
 set serveroutput on size unlimited format truncated
 set verify off
@@ -14,6 +30,8 @@ drop synonym be_between;
 drop synonym match;
 
 drop synonym be_false;
+
+drop synonym be_empty;
 
 drop synonym be_greater_or_equal;
 
@@ -32,6 +50,26 @@ drop synonym be_null;
 drop synonym be_true;
 
 drop synonym equal;
+
+drop type ut_coveralls_reporter;
+
+drop type ut_coverage_sonar_reporter;
+
+drop package ut_coverage_report_html_helper;
+
+drop type ut_coverage_html_reporter;
+
+drop package ut_coverage;
+
+drop type ut_coverage_file_mappings;
+
+drop type ut_coverage_file_mapping;
+
+drop package ut_coverage_helper;
+
+drop view ut_coverage_sources_tmp;
+
+drop table ut_coverage_sources_tmp$;
 
 drop package ut_teamcity_reporter_helper;
 
@@ -87,6 +125,8 @@ drop type ut_be_like;
 
 drop type ut_be_greater_or_equal;
 
+drop type ut_be_empty;
+
 drop type ut_be_greater_than;
 
 drop type ut_be_less_or_equal;
@@ -129,6 +169,8 @@ drop package ut_annotations;
 
 drop package ut_metadata;
 
+drop package ut_ansiconsole_helper;
+
 drop package ut_utils;
 
 drop type ut_documentation_reporter;
@@ -138,6 +180,8 @@ drop type ut_teamcity_reporter;
 drop type ut_xunit_reporter;
 
 drop type ut_event_listener;
+
+drop type ut_coverage_reporter_base;
 
 drop type ut_reporters;
 
@@ -151,6 +195,8 @@ drop type ut_logical_suite;
 
 drop type ut_test;
 
+drop type ut_console_reporter_base;
+
 drop type ut_executable;
 
 drop type ut_suite_items;
@@ -161,15 +207,13 @@ drop type ut_event_listener_base;
 
 drop type ut_suite_item_base;
 
-drop type ut_output_dbms_pipe;
+drop package ut_output_buffer;
 
-drop package ut_output_pipe_helper;
+drop view ut_output_buffer_tmp;
 
-drop type ut_output_stream;
+drop table ut_output_buffer_tmp$;
 
-drop type ut_output_dbms_output;
-
-drop type ut_output;
+drop sequence ut_message_id_seq;
 
 drop type ut_results_counter;
 
@@ -177,9 +221,15 @@ drop type ut_assert_results;
 
 drop type ut_assert_result;
 
-drop type ut_varchar2_list;
+drop type ut_key_value_pairs;
 
-drop type ut_clob_list;
+drop type ut_key_value_pair;
+
+drop type ut_object_names;
+
+drop type ut_object_name;
+
+drop type ut_varchar2_list;
 
 begin
   for syn in (

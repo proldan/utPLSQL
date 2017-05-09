@@ -1,4 +1,20 @@
 create or replace package body ut_utils is
+  /*
+  utPLSQL - Version X.X.X.X
+  Copyright 2016 - 2017 utPLSQL Project
+
+  Licensed under the Apache License, Version 2.0 (the "License"):
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  */
 
   function quote_string(a_value varchar2) return varchar2 is
   begin
@@ -6,23 +22,32 @@ create or replace package body ut_utils is
   end;
 
   function test_result_to_char(a_test_result integer) return varchar2 as
+    l_result varchar2(20);
   begin
-    return case a_test_result
-                  when tr_success then tr_success_char
-                  when tr_failure then tr_failure_char
-                  when tr_error   then tr_error_char
-                  when tr_ignore   then tr_ignore_char
-                  else 'Unknown(' || coalesce(to_char(a_test_result),'NULL') || ')'
-                end;
+    if a_test_result = tr_success then
+      l_result := tr_success_char;
+    elsif a_test_result = tr_failure then
+      l_result := tr_failure_char;
+    elsif a_test_result = tr_error then
+      l_result := tr_error_char;
+    elsif a_test_result = tr_disabled then
+      l_result := tr_disabled_char;
+    else
+      l_result := 'Unknown(' || coalesce(to_char(a_test_result),'NULL') || ')';
+    end if ;
+    return l_result;
   end test_result_to_char;
 
 
   function to_test_result(a_test boolean) return integer is
+    l_result integer;
   begin
-    return case a_test
-             when true then tr_success
-             else tr_failure
-           end;
+    if a_test then
+      l_result := tr_success;
+    else
+      l_result := tr_failure;
+    end if;
+    return l_result;
   end;
 
   function gen_savepoint_name return varchar2 is
@@ -50,7 +75,7 @@ create or replace package body ut_utils is
       null;
     $end
   end;
-  
+
   procedure debug_log(a_message clob) is
     l_varchars ut_varchar2_list;
   begin
@@ -66,35 +91,44 @@ create or replace package body ut_utils is
 
   function to_string(a_value varchar2) return varchar2 is
     l_len integer := coalesce(length(a_value),0);
+    l_result varchar2(32767);
   begin
-    return
-      case
-        when l_len = 0 then gc_null_string
-        when l_len <= gc_max_input_string_length then quote_string(a_value)
-        else quote_string(substr(a_value,1,gc_overflow_substr_len)) || gc_more_data_string
-      end;
+    if l_len = 0 then
+      l_result := gc_null_string;
+    elsif l_len <= gc_max_input_string_length then
+      l_result := quote_string(a_value);
+    else
+      l_result := quote_string(substr(a_value,1,gc_overflow_substr_len)) || gc_more_data_string;
+    end if ;
+    return l_result;
   end;
 
   function to_string(a_value clob) return varchar2 is
     l_len integer := coalesce(dbms_lob.getlength(a_value), 0);
+    l_result varchar2(32767);
   begin
-    return
-      case
-        when l_len = 0 then gc_null_string
-        when l_len <= gc_max_input_string_length then quote_string(a_value)
-        else quote_string(dbms_lob.substr(a_value, gc_overflow_substr_len)) || gc_more_data_string
-      end;
+    if l_len = 0 then
+      l_result := gc_null_string;
+    elsif l_len <= gc_max_input_string_length then
+      l_result := quote_string(a_value);
+    else
+      l_result := quote_string(dbms_lob.substr(a_value, gc_overflow_substr_len)) || gc_more_data_string;
+    end if;
+    return l_result;
   end;
 
   function to_string(a_value blob) return varchar2 is
     l_len integer := coalesce(dbms_lob.getlength(a_value), 0);
+    l_result varchar2(32767);
   begin
-    return
-      case
-        when l_len = 0 then gc_null_string
-        when l_len <= gc_max_input_string_length then quote_string(rawtohex(a_value))
-        else to_string( rawtohex(dbms_lob.substr(a_value, gc_overflow_substr_len)) )
-      end;
+    if l_len = 0 then
+      l_result := gc_null_string;
+    elsif l_len <= gc_max_input_string_length then
+      l_result := quote_string(rawtohex(a_value));
+    else
+      l_result := to_string( rawtohex(dbms_lob.substr(a_value, gc_overflow_substr_len)) );
+    end if ;
+    return l_result;
   end;
 
   function to_string(a_value boolean) return varchar2 is
@@ -150,7 +184,6 @@ create or replace package body ut_utils is
 
   function string_to_table(a_string varchar2, a_delimiter varchar2:= chr(10), a_skip_leading_delimiter varchar2 := 'N') return ut_varchar2_list is
     l_offset                 integer := 1;
-    l_length                 integer;
     l_delimiter_position     integer;
     l_skip_leading_delimiter boolean := coalesce(a_skip_leading_delimiter = 'Y',false);
     l_result                 ut_varchar2_list := ut_varchar2_list();
@@ -161,7 +194,7 @@ create or replace package body ut_utils is
     if a_delimiter is null then
       return ut_varchar2_list(a_string);
     end if;
-    l_length := length(a_string);
+
     loop
       l_delimiter_position := instr(a_string, a_delimiter, l_offset);
       if not (l_delimiter_position = 1 and l_skip_leading_delimiter) then
@@ -225,10 +258,8 @@ create or replace package body ut_utils is
     l_result          clob;
     l_text_table_rows integer := coalesce(cardinality(a_text_table),0);
   begin
-
-    dbms_lob.createtemporary(l_result, true);
     for i in 1 .. l_text_table_rows loop
-      dbms_lob.writeappend(l_result, length(a_text_table(i)), a_text_table(i));
+      append_to_clob(l_result, a_text_table(i));
     end loop;
     return l_result;
   end;
@@ -247,5 +278,46 @@ create or replace package body ut_utils is
     return replace( a_text, chr(10), chr(10) || lpad( ' ', a_indent_size ) );
   end;
 
-end;
+  function get_utplsql_objects_list return ut_object_names is
+    l_result ut_object_names;
+  begin
+    select distinct ut_object_name(sys_context('userenv','current_user'), o.object_name)
+      bulk collect into l_result
+      from user_objects o
+     where o.object_name = 'UT' or object_name like 'UT\_%' escape '\'
+       and o.object_type <> 'SYNONYM';
+    return l_result;
+  end;
+
+  procedure append_to_varchar2_list(a_list in out nocopy ut_varchar2_list, a_line varchar2) is
+  begin
+    if a_line is not null then
+      if a_list is null then
+        a_list := ut_varchar2_list();
+      end if;
+      a_list.extend;
+      a_list(a_list.last) := a_line;
+    end if;
+  end append_to_varchar2_list;
+
+  procedure append_to_clob(a_src_clob in out nocopy clob, a_new_data clob) is
+  begin
+    if a_new_data is not null and dbms_lob.getlength(a_new_data) > 0 then
+      if a_src_clob is null then
+        dbms_lob.createtemporary(a_src_clob, true);
+      end if;
+      dbms_lob.append(a_src_clob, a_new_data);
+    end if;
+  end;
+  procedure append_to_clob(a_src_clob in out nocopy clob, a_new_data varchar2) is
+  begin
+    if a_new_data is not null then
+      if a_src_clob is null then
+        dbms_lob.createtemporary(a_src_clob, true);
+      end if;
+      dbms_lob.writeappend(a_src_clob, length(a_new_data), a_new_data);
+    end if;
+  end;
+
+end ut_utils;
 /

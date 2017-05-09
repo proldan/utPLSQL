@@ -1,4 +1,20 @@
 create or replace type body ut_assert_result is
+  /*
+  utPLSQL - Version X.X.X.X
+  Copyright 2016 - 2017 utPLSQL Project
+
+  Licensed under the Apache License, Version 2.0 (the "License"):
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  */
 
   constructor function ut_assert_result(self in out nocopy ut_assert_result, a_result integer, a_error_message varchar2)
     return self as result is
@@ -46,12 +62,9 @@ create or replace type body ut_assert_result is
       if a_clob is not null and l_text is not null then
         l_text := chr(10) || l_text;
       end if;
-      if l_text is not null then
-        dbms_lob.writeappend(a_clob, length(l_text), l_text);
-      end if;
+      ut_utils.append_to_clob(a_clob, l_text);
     end;
   begin
-    dbms_lob.createtemporary(l_result, true);
     if self.result != ut_utils.tr_success or self.error_message is not null then
       if self.message is not null then
         add_text_line(l_result, '  expectation description: ', self.message);
@@ -82,12 +95,6 @@ create or replace type body ut_assert_result is
       add_text_line(l_result, '  error: '||ut_utils.indent_lines( self.error_message, length('  error: ') ) );
     end if;
 
-    if l_result is not null and self.caller_info is not null then
-      add_text_line(l_result, self.caller_info);
-    end if;
-    if length(l_result) > 0 then
-      add_text_line(l_result,'  '||chr(10));
-    end if;
     return l_result;
   end;
 

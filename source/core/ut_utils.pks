@@ -1,4 +1,20 @@
 create or replace package ut_utils authid definer is
+  /*
+  utPLSQL - Version X.X.X.X
+  Copyright 2016 - 2017 utPLSQL Project
+
+  Licensed under the Apache License, Version 2.0 (the "License"):
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  */
 
   /*
     Package: ut_utils
@@ -6,6 +22,7 @@ create or replace package ut_utils authid definer is
 
   */
 
+  gc_version                 constant varchar2(50) := 'utPLSQL - Version X.X.X.X';
 
   /* Constants: Event names */
   gc_run                     constant varchar2(12) := 'run';
@@ -20,12 +37,12 @@ create or replace package ut_utils authid definer is
   gc_after_all               constant varchar2(12) := 'after_all';
 
   /* Constants: Test Results */
-  tr_ignore                  constant number(1) := 0; -- test/suite was ignored
+  tr_disabled                constant number(1) := 0; -- test/suite was disabled
   tr_success                 constant number(1) := 1; -- test passed
   tr_failure                 constant number(1) := 2; -- one or more asserts failed
   tr_error                   constant number(1) := 3; -- exception was raised
 
-  tr_ignore_char             constant varchar2(6) := 'Ignore'; -- test/suite was ignored
+  tr_disabled_char           constant varchar2(8) := 'Disabled'; -- test/suite was disabled
   tr_success_char            constant varchar2(7) := 'Success'; -- test passed
   tr_failure_char            constant varchar2(7) := 'Failure'; -- one or more asserts failed
   tr_error_char              constant varchar2(5) := 'Error'; -- exception was raised
@@ -48,22 +65,23 @@ create or replace package ut_utils authid definer is
   ex_invalid_path_format exception;
   gc_invalid_path_format constant pls_integer := -20202;
   pragma exception_init(ex_invalid_path_format, -20202);
-  
+
   ex_suite_package_not_found exception;
   gc_suite_package_not_found constant pls_integer := -20204;
   pragma exception_init(ex_suite_package_not_found, -20204);
-  
+
   -- Reporting event time not supported
   ex_invalid_rep_event_time exception;
   gc_invalid_rep_event_time constant pls_integer := -20210;
   pragma exception_init(ex_invalid_rep_event_time, -20210);
-  
+
   -- Reporting event name not supported
   ex_invalid_rep_event_name exception;
   gc_invalid_rep_event_name constant pls_integer := -20211;
   pragma exception_init(ex_invalid_rep_event_name, -20211);
 
 
+  gc_max_storage_varchar2_len constant integer := 4000;
   gc_max_output_string_length constant integer := 4000;
   gc_max_input_string_length  constant integer := gc_max_output_string_length - 2; --we need to remove 2 chars for quotes around string
   gc_more_data_string         constant varchar2(5) := '[...]';
@@ -175,6 +193,20 @@ create or replace package ut_utils authid definer is
   * Returns a text indented with spaces except the first line.
   */
   function indent_lines(a_text varchar2, a_indent_size integer) return varchar2;
+
+
+  /*
+  * Returns a list of object that are part of utPLSQL framework
+  */
+  function get_utplsql_objects_list return ut_object_names;
+
+  /*
+  * Append a line to the end of ut_varchar2_lst
+  */
+  procedure append_to_varchar2_list(a_list in out nocopy ut_varchar2_list, a_line varchar2);
+
+  procedure append_to_clob(a_src_clob in out nocopy clob, a_new_data clob);
+  procedure append_to_clob(a_src_clob in out nocopy clob, a_new_data varchar2);
 
 end ut_utils;
 /

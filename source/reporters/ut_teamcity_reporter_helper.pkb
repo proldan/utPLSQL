@@ -1,11 +1,27 @@
 create or replace package body ut_teamcity_reporter_helper is
+  /*
+  utPLSQL - Version X.X.X.X
+  Copyright 2016 - 2017 utPLSQL Project
+
+  Licensed under the Apache License, Version 2.0 (the "License"):
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  */
 
   subtype t_prop_index is varchar2(2000 char);
   type t_props is table of varchar2(32767) index by t_prop_index;
 
   function escape_value(a_value in varchar2) return varchar2 is
   begin
-    return regexp_replace(a_value, '(''|"|' || chr(13) || '|' || chr(10) || '|[|])', '|\1');
+    return translate(regexp_replace(a_value, '(''|"|[|]|' || chr(13) || '|' || chr(10) || ')', '|\1'),chr(13)||chr(10),'nr');
   end;
 
   function message(a_command in varchar2, a_props t_props default cast(null as t_props)) return varchar2 is
@@ -14,8 +30,8 @@ create or replace package body ut_teamcity_reporter_helper is
     l_value   varchar2(32767);
   begin
     l_message := '##teamcity[' || a_command || ' timestamp=''' ||
-                 regexp_replace(to_char(systimestamp, 'YYYY-MM-DD"T"HH24:MI:ss.FFTZHTZM'), '(\.\d{3})\d+(\+)', '\1\2') || '''';
-  
+                 regexp_replace(to_char(systimestamp, 'YYYY-MM-DD"T"HH24:MI:ss.FF3TZHTZM'), '(\.\d{3})\d+(\+)', '\1\2') || '''';
+
     l_index := a_props.first;
     while l_index is not null loop
       if a_props(l_index) is not null then
@@ -85,7 +101,7 @@ create or replace package body ut_teamcity_reporter_helper is
     return message('testFinished', l_props);
   end;
 
-  function test_ignored(a_test_name varchar2, a_flow_id varchar2 default null) return varchar2 is
+  function test_disabled(a_test_name varchar2, a_flow_id varchar2 default null) return varchar2 is
     l_props t_props;
   begin
     l_props('name') := a_test_name;
@@ -99,12 +115,12 @@ create or replace package body ut_teamcity_reporter_helper is
     l_props('message') := a_msg;
     l_props('details') := a_details;
     l_props('flowId') := a_flow_id;
-    
+
     if a_actual is not null and a_expected is not null then
       l_props('actual') := a_actual;
       l_props('expected') := a_expected;
     end if;
-    
+
     return message('testFailed', l_props);
   end;
   function test_std_out(a_test_name varchar2, a_out in varchar2, a_flow_id in varchar2 default null) return varchar2 is
